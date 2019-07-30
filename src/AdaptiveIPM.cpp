@@ -1,4 +1,3 @@
-
 #include "stdafx.h"
 #include "AdaptiveIPM.h"
 
@@ -17,15 +16,15 @@ void AdaptiveIPM::initIPMInfo()
 	m_ipmInfo.ipmLeft = 0;
 	m_ipmInfo.ipmTop = 0;
 
-	m_ipmInfo.vpInitPortion = 0.02;  //³õÊ¼»¯
-	m_ipmInfo.vpPortion = 0.13;		//Ëæºó¸üĞÂµÄvpPortion
-	m_ipmInfo.ipmInterpolation = 0;  //Ë«ÏßĞÔ²åÖµ·½·¨
+	m_ipmInfo.vpInitPortion = 0.02;  //åˆå§‹åŒ–
+	m_ipmInfo.vpPortion = 0.13;		//éšåæ›´æ–°çš„vpPortion
+	m_ipmInfo.ipmInterpolation = 0;  //åŒçº¿æ€§æ’å€¼æ–¹æ³•
 
 }
 
 void AdaptiveIPM::ipm_based_on_vp()
 {
-	//¸ù¾İÃğµãÀ´½øĞĞ·´Í¶Ó°±ä»»
+	//æ ¹æ®ç­ç‚¹æ¥è¿›è¡ŒåæŠ•å½±å˜æ¢
 	Point2d ptVP = m_ptVP;
 	Mat imgSrc = m_SrcImg;
 
@@ -41,7 +40,7 @@ void AdaptiveIPM::ipm_based_on_vp()
 	//cout<<eps<<endl;
 	m_ipmInfo.ipmLeft = MAX(0, m_ipmInfo.ipmLeft);
 	m_ipmInfo.ipmRight = MIN(u - 1, m_ipmInfo.ipmRight);
-	m_ipmInfo.ipmTop = ptVP.y + eps;// MAX(ptVanish.y+eps, m_ipmInfo.ipmTop);//¶¯Ì¬×ª»¯´óĞ¡
+	m_ipmInfo.ipmTop = ptVP.y + eps;// MAX(ptVanish.y+eps, m_ipmInfo.ipmTop);//åŠ¨æ€è½¬åŒ–å¤§å°
 	m_ipmInfo.ipmBottom = MIN(v - 1, m_ipmInfo.ipmBottom);
 
 	FLOAT_MAT_ELEM_TYPE uvLimitsp[] = { ptVP.x,				m_ipmInfo.ipmRight,		m_ipmInfo.ipmLeft,		ptVP.x,
@@ -63,7 +62,7 @@ void AdaptiveIPM::ipm_based_on_vp()
 	cvMinMaxLoc(&row1, (double*)&xfMin, (double*)&xfMax, 0, 0, 0);
 	cvMinMaxLoc(&row2, (double*)&yfMin, (double*)&yfMax, 0, 0, 0);
 
-	int outRow = m_IpmImg.rows; //Éè¶¨512*512
+	int outRow = m_IpmImg.rows; //è®¾å®š512*512
 	int outCol = m_IpmImg.cols;
 
 	//cout<<"x:"<<xfMax<<" "<<xfMin<<endl<<"y:"<<yfMax<<" "<<yfMin<<endl;
@@ -87,7 +86,7 @@ void AdaptiveIPM::ipm_based_on_vp()
 	}
 
 
-	//get their pixel values in image frame //»ñÈ¡Ã¿¸öÏñËØµÄÕæÊµÏñËØÖµ£¬´´½¨Êä³ö2ĞĞ£¬outRow*outCol´óĞ¡µÄ¾ØÕó
+	//get their pixel values in image frame //è·å–æ¯ä¸ªåƒç´ çš„çœŸå®åƒç´ å€¼ï¼Œåˆ›å»ºè¾“å‡º2è¡Œï¼ŒoutRow*outColå¤§å°çš„çŸ©é˜µ
 	CvMat *uvGrid = cvCreateMat(2, outRow*outCol, FLOAT_MAT_TYPE);
 	transformGround2Image(xyGrid, uvGrid, m_cam);
 	//now loop and find the nearest pixel value for each position
@@ -118,7 +117,7 @@ void AdaptiveIPM::ipm_based_on_vp()
 			/*not out of bounds, then get nearest neighbor*/
 			else
 			{
-				/*Bilinear interpolation Ë«ÏßĞÔ²åÖµ*/
+				/*Bilinear interpolation åŒçº¿æ€§æ’å€¼*/
 				if (m_ipmInfo.ipmInterpolation == 0)
 				{
 					int x1 = int(ui);
@@ -130,7 +129,7 @@ void AdaptiveIPM::ipm_based_on_vp()
 					float val = CV_MAT_ELEM(*inImage, uchar, y1, x1) * (1 - x) * (1 - y) + CV_MAT_ELEM(*inImage, uchar, y1, x2) * x * (1 - y) + CV_MAT_ELEM(*inImage, uchar, y2, x1) * (1 - x) * y + CV_MAT_ELEM(*inImage, uchar, y2, x2) * x * y;
 					m_IpmImg.at<uchar>(i, j) = (float)val;
 				}
-				/*nearest-neighbor interpolation×î½üÁÚ²åÖµ*/
+				/*nearest-neighbor interpolationæœ€è¿‘é‚»æ’å€¼*/
 				else
 				{
 					m_IpmImg.at<uchar>(i, j) = CV_MAT_ELEM(*inImage, uchar, int(vi + .5), int(ui + .5));
@@ -171,7 +170,7 @@ bool AdaptiveIPM::run()
 	//m_vecImgPaths = fc::listCurFiles(m_strDir);
 
 
-	//½âÎöGPS And Pose
+	//è§£æGPS And Pose
 	ifstream iGPS(m_strGPSFile.c_str());
 
 	if (!iGPS.is_open())
@@ -182,11 +181,11 @@ bool AdaptiveIPM::run()
 	string strGPSLine;
 	GPSandPose gpsPose;
 
-	//¼ÆÊı
+	//è®¡æ•°
 	int i = 0;
 
-	//Ô­Ê¼Í¼Ïñ
-	//*****ÖğĞĞ½âÎöGPS £¬¼ÓÔØ¶ÔÓ¦Ó°Ïñ****//
+	//åŸå§‹å›¾åƒ
+	//*****é€è¡Œè§£æGPS ï¼ŒåŠ è½½å¯¹åº”å½±åƒ****//
 	while (getline(iGPS, strGPSLine))
 	{
 
@@ -210,7 +209,7 @@ bool AdaptiveIPM::run()
 		i++;
 		Mat imgSrc = imread(strImgPath.c_str());
 
-		//¸ù¾İÃğµã½øĞĞ×ÔÊÊÓ¦·´Í¶Ó°±ä»»
+		//æ ¹æ®ç­ç‚¹è¿›è¡Œè‡ªé€‚åº”åæŠ•å½±å˜æ¢
 		CvPoint2D32f ptVp = getVanishPoint(m_cam);
 
 		cout << ptVp.x << " " << ptVp.y << endl;
@@ -232,7 +231,7 @@ bool AdaptiveIPM::run()
 CvPoint2D32f AdaptiveIPM::getVanishPoint(Camera & cam)
 {
 
-	//¼ì²éµ½ struct µÄ³õÊ¼»¯
+	//æ£€æŸ¥åˆ° struct çš„åˆå§‹åŒ–
 	float vpp[] = { std::sin(cam.m_YawAngle) / std::cos(cam.m_PitchAngle),
 		std::cos(cam.m_YawAngle) / std::cos(cam.m_PitchAngle),
 		0 };
@@ -268,7 +267,7 @@ CvPoint2D32f AdaptiveIPM::getVanishPoint(Camera & cam)
 	resultPoint.y = cvGetReal1D(&vp, 1);
 
 	//cout<<"the Vanish Point is:"<<endl;
-	//cout<<"x£º"<<resultPoint.x<<endl<<"y£º"<<resultPoint.y<<endl;
+	//cout<<"xï¼š"<<resultPoint.x<<endl<<"yï¼š"<<resultPoint.y<<endl;
 	return resultPoint;
 }
 
@@ -282,7 +281,7 @@ void AdaptiveIPM::transformImage2Ground(const CvMat *inPoints, CvMat *outPoints,
 	//copy inPoints to first two rows
 	CvMat inPoints2, inPoints3, inPointsr4, inPointsr3;
 
-	cvGetRows(inPoints4, &inPoints2, 0, 2); //ÆğÊ¼ĞĞ£¬ĞĞÊı
+	cvGetRows(inPoints4, &inPoints2, 0, 2); //èµ·å§‹è¡Œï¼Œè¡Œæ•°
 	cvGetRows(inPoints4, &inPoints3, 0, 3);
 	cvGetRow(inPoints4, &inPointsr3, 2);
 	cvGetRow(inPoints4, &inPointsr4, 3);
@@ -387,7 +386,7 @@ vector<string> AdaptiveIPM::split(const string &s, const string &seperator) {
 	string_size i = 0;
 
 	while (i != s.size()) {
-		//ÕÒµ½×Ö·û´®ÖĞÊ×¸ö²»µÈÓÚ·Ö¸ô·ûµÄ×ÖÄ¸£»
+		//æ‰¾åˆ°å­—ç¬¦ä¸²ä¸­é¦–ä¸ªä¸ç­‰äºåˆ†éš”ç¬¦çš„å­—æ¯ï¼›
 		int flag = 0;
 		while (i != s.size() && flag == 0) {
 			flag = 1;
@@ -399,7 +398,7 @@ vector<string> AdaptiveIPM::split(const string &s, const string &seperator) {
 				}
 		}
 
-		//ÕÒµ½ÓÖÒ»¸ö·Ö¸ô·û£¬½«Á½¸ö·Ö¸ô·ûÖ®¼äµÄ×Ö·û´®È¡³ö£»
+		//æ‰¾åˆ°åˆä¸€ä¸ªåˆ†éš”ç¬¦ï¼Œå°†ä¸¤ä¸ªåˆ†éš”ç¬¦ä¹‹é—´çš„å­—ç¬¦ä¸²å–å‡ºï¼›
 		flag = 0;
 		string_size j = i;
 		while (j != s.size() && flag == 0) {
@@ -418,5 +417,3 @@ vector<string> AdaptiveIPM::split(const string &s, const string &seperator) {
 	}
 	return result;
 }
-
-
